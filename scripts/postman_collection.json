@@ -1,0 +1,91 @@
+{
+  "info": {
+    "name": "Distributed Document Search Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8000"},
+    {"key": "tenant", "value": "acme"},
+    {"key": "documentId", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Create Document",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const body = pm.response.json();",
+              "if (body.id) { pm.collectionVariables.set('documentId', body.id); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "X-Tenant-ID", "value": "{{tenant}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Kubernetes networking\",\n  \"content\": \"Services, ingress controllers, and CNI plugins enable cluster networking.\",\n  \"metadata\": {\"topic\": \"k8s\"}\n}"
+        },
+        "url": "{{baseUrl}}/documents"
+      }
+    },
+    {
+      "name": "Search (query tenant param)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/search?q=kubernetes&tenant={{tenant}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["search"],
+          "query": [
+            {"key": "q", "value": "kubernetes"},
+            {"key": "tenant", "value": "{{tenant}}"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "Search (header tenant)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Tenant-ID", "value": "{{tenant}}"}
+        ],
+        "url": "{{baseUrl}}/search?q=kubernetes"
+      }
+    },
+    {
+      "name": "Get Document",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "X-Tenant-ID", "value": "{{tenant}}"}
+        ],
+        "url": "{{baseUrl}}/documents/{{documentId}}"
+      }
+    },
+    {
+      "name": "Delete Document",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {"key": "X-Tenant-ID", "value": "{{tenant}}"}
+        ],
+        "url": "{{baseUrl}}/documents/{{documentId}}"
+      }
+    }
+  ]
+}
